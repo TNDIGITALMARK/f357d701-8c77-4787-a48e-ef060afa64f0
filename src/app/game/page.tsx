@@ -9,12 +9,25 @@ function GameContent() {
   const searchParams = useSearchParams();
   const playerName = searchParams.get('name') || 'Anonymous';
   const [gameOver, setGameOver] = useState(false);
+  const [victory, setVictory] = useState(false);
+  const [winnerName, setWinnerName] = useState('');
   const [finalScore, setFinalScore] = useState(0);
   const [finalLength, setFinalLength] = useState(0);
+  const [eliminations, setEliminations] = useState(0);
 
   const handleGameOver = (score: number, length: number) => {
     setFinalScore(score);
     setFinalLength(length);
+    setGameOver(true);
+    setVictory(false);
+  };
+
+  const handleVictory = (winner: string, score: number, length: number, kills: number) => {
+    setWinnerName(winner);
+    setFinalScore(score);
+    setFinalLength(length);
+    setEliminations(kills);
+    setVictory(true);
     setGameOver(true);
   };
 
@@ -31,23 +44,57 @@ function GameContent() {
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="max-w-md w-full">
           <div className="bg-gradient-to-br from-card to-background border-2 border-primary rounded-2xl p-8 text-center">
-            <h1 className="text-4xl font-black text-foreground mb-2 neon-text">
-              GAME OVER
-            </h1>
-            <p className="text-muted-foreground mb-8">
-              Nice run, <span className="text-primary font-bold">{playerName}</span>!
-            </p>
+            {victory ? (
+              <>
+                <div className="mb-4">
+                  <div className="text-7xl mb-2 animate-float">👑</div>
+                  <h1 className="text-5xl font-black text-accent mb-2 neon-text uppercase">
+                    VICTORY!
+                  </h1>
+                  <p className="text-xl text-foreground font-bold mb-2">
+                    Last Snake Standing
+                  </p>
+                  <p className="text-muted-foreground mb-6">
+                    <span className="text-primary font-bold text-2xl">{winnerName}</span> wins!
+                  </p>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-background/50 rounded-xl p-4 border border-border">
-                <div className="text-sm text-muted-foreground mb-1">Final Score</div>
-                <div className="text-3xl font-bold text-primary">{finalScore}</div>
-              </div>
-              <div className="bg-background/50 rounded-xl p-4 border border-border">
-                <div className="text-sm text-muted-foreground mb-1">Final Length</div>
-                <div className="text-3xl font-bold text-secondary">{finalLength}</div>
-              </div>
-            </div>
+                <div className="grid grid-cols-3 gap-3 mb-8">
+                  <div className="bg-background/50 rounded-xl p-4 border border-border">
+                    <div className="text-xs text-muted-foreground mb-1">Score</div>
+                    <div className="text-2xl font-bold text-primary">{finalScore}</div>
+                  </div>
+                  <div className="bg-background/50 rounded-xl p-4 border border-border">
+                    <div className="text-xs text-muted-foreground mb-1">Length</div>
+                    <div className="text-2xl font-bold text-secondary">{finalLength}</div>
+                  </div>
+                  <div className="bg-background/50 rounded-xl p-4 border border-border">
+                    <div className="text-xs text-muted-foreground mb-1">Kills</div>
+                    <div className="text-2xl font-bold text-accent">{eliminations}</div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-4xl font-black text-foreground mb-2 neon-text">
+                  ELIMINATED
+                </h1>
+                <p className="text-muted-foreground mb-8">
+                  Better luck next time, <span className="text-primary font-bold">{playerName}</span>!
+                </p>
+
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-background/50 rounded-xl p-4 border border-border">
+                    <div className="text-sm text-muted-foreground mb-1">Final Score</div>
+                    <div className="text-3xl font-bold text-primary">{finalScore}</div>
+                  </div>
+                  <div className="bg-background/50 rounded-xl p-4 border border-border">
+                    <div className="text-sm text-muted-foreground mb-1">Final Length</div>
+                    <div className="text-3xl font-bold text-secondary">{finalLength}</div>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="space-y-3">
               <Button
@@ -80,7 +127,7 @@ function GameContent() {
     );
   }
 
-  return <GameCanvas playerName={playerName} onGameOver={handleGameOver} />;
+  return <GameCanvas playerName={playerName} onGameOver={handleGameOver} onVictory={handleVictory} />;
 }
 
 export default function GamePage() {

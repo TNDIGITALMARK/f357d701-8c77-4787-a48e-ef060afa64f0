@@ -6,9 +6,10 @@ import { GameEngine, Player, GameState } from '@/lib/game-engine';
 interface GameCanvasProps {
   playerName: string;
   onGameOver: (score: number, length: number) => void;
+  onVictory: (winnerName: string, score: number, length: number, eliminations: number) => void;
 }
 
-export default function GameCanvas({ playerName, onGameOver }: GameCanvasProps) {
+export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const playerIdRef = useRef<string>(`player-${Date.now()}`);
@@ -98,13 +99,27 @@ export default function GameCanvas({ playerName, onGameOver }: GameCanvasProps) 
       // Render
       render(ctx, canvas, gameEngine.getGameState());
 
+      // Check for victory condition
+      const gameState = gameEngine.getGameState();
+      if (gameState.gameOver && gameState.winner) {
+        // Game has a winner
+        onVictory(
+          gameState.winner.name,
+          gameState.winner.score,
+          gameState.winner.length,
+          gameState.winner.eliminationCount
+        );
+        return;
+      }
+
       // Update UI
-      const currentPlayer = gameEngine.getGameState().players.get(playerIdRef.current);
+      const currentPlayer = gameState.players.get(playerIdRef.current);
       if (currentPlayer) {
         setScore(currentPlayer.score);
         setLength(currentPlayer.length);
 
         if (!currentPlayer.isAlive) {
+          // Player died but game continues
           onGameOver(currentPlayer.score, currentPlayer.length);
           return;
         }

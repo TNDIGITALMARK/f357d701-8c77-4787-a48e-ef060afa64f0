@@ -47,6 +47,8 @@ export interface GameState {
   canvasWidth: number;
   canvasHeight: number;
   lastUpdate: number;
+  gameOver: boolean;
+  winner: Player | null;
 }
 
 export const GAME_CONFIG = {
@@ -81,6 +83,8 @@ export class GameEngine {
       canvasWidth,
       canvasHeight,
       lastUpdate: Date.now(),
+      gameOver: false,
+      winner: null,
     };
     this.initializeFood();
     this.initializeBots();
@@ -89,11 +93,13 @@ export class GameEngine {
   private initializeBots() {
     const botNames = [
       'NeonViper', 'PixelPython', 'CosmicCrusher', 'ElectricEel',
-      'GalacticGlider', 'TurboSerpent', 'OrbitMaster', 'StarStrike'
+      'GalacticGlider', 'TurboSerpent', 'OrbitMaster', 'StarStrike',
+      'VoidReaper', 'NovaBlitz', 'QuantumSlither', 'EchoStorm',
+      'PhaseShifter', 'SolarFang', 'NightCrawler', 'VortexKing'
     ];
 
-    // Add 5-8 bot players
-    const botCount = 5 + Math.floor(Math.random() * 4);
+    // Add 12-15 bot players for longer gameplay
+    const botCount = 12 + Math.floor(Math.random() * 4);
     for (let i = 0; i < botCount; i++) {
       const botName = botNames[i % botNames.length];
       this.createPlayer(`bot-${i}`, botName);
@@ -292,29 +298,24 @@ export class GameEngine {
     // Create explosion particles
     this.createExplosionParticles(player.position, player.color);
 
-    // Respawn bots after 3 seconds
-    if (player.id.startsWith('bot-')) {
-      setTimeout(() => {
-        this.respawnBot(player);
-      }, 3000);
-    }
+    // Check for victory condition - only one player left alive
+    this.checkVictoryCondition();
+
+    // Don't respawn bots - last man standing mode
+    // Bots that are eliminated stay eliminated for true battle royale gameplay
   }
 
-  private respawnBot(bot: Player) {
-    const startX = Math.random() * (this.gameState.canvasWidth - 200) + 100;
-    const startY = Math.random() * (this.gameState.canvasHeight - 200) + 100;
+  private checkVictoryCondition() {
+    const alivePlayers = Array.from(this.gameState.players.values()).filter(p => p.isAlive);
 
-    bot.isAlive = true;
-    bot.position = { x: startX, y: startY };
-    bot.length = GAME_CONFIG.INITIAL_LENGTH;
-    bot.score = 0;
-    bot.speed = GAME_CONFIG.BASE_SPEED;
-    bot.angle = Math.random() * Math.PI * 2;
-
-    // Reset segments
-    bot.segments = [];
-    for (let i = 0; i < GAME_CONFIG.INITIAL_LENGTH; i++) {
-      bot.segments.push({ x: startX - i * GAME_CONFIG.SEGMENT_DISTANCE, y: startY });
+    if (alivePlayers.length === 1) {
+      // We have a winner!
+      this.gameState.gameOver = true;
+      this.gameState.winner = alivePlayers[0];
+    } else if (alivePlayers.length === 0) {
+      // Everyone died (shouldn't happen but just in case)
+      this.gameState.gameOver = true;
+      this.gameState.winner = null;
     }
   }
 
