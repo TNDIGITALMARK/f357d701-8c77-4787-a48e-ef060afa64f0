@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Elegant Flora Boutique",
-  description: "Beautiful AI-powered website creation platform",
+  title: "Orbital Snakes - Multiplayer Snake Arena Game",
+  description: "Join the ultimate multiplayer snake arena. Devour glowing orbs, eliminate rivals, and dominate the cosmic battlefield in this intense slither.io-style game.",
 };
 
 export default function RootLayout({
