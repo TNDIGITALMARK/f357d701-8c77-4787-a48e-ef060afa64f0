@@ -52,15 +52,17 @@ export interface GameState {
 }
 
 export const GAME_CONFIG = {
-  BASE_SPEED: 0.9,  // Further reduced from 1.2 to 0.9 for slower, more strategic gameplay
-  BOOST_SPEED: 1.8,  // Reduced from 2.4 to 1.8 for safer boost speed
+  BASE_SPEED: 0.7,  // Reduced from 0.9 to 0.7 for much slower, safer gameplay
+  BOOST_SPEED: 1.4,  // Reduced from 1.8 to 1.4 for safer boost speed
   SEGMENT_DISTANCE: 8,
   INITIAL_LENGTH: 10,
-  FOOD_COUNT: 500,  // Increased from 400 to 500 for more food availability
+  FOOD_COUNT: 600,  // Increased from 500 to 600 for more food availability
   SPECIAL_FOOD_INTERVAL: 30000, // 30 seconds
-  COLLISION_DISTANCE: 8,  // Reduced from 10 to 8 for more forgiving collisions
+  COLLISION_DISTANCE: 6,  // Reduced from 8 to 6 for even more forgiving collisions
   GROWTH_PER_FOOD: 1,
   CANVAS_PADDING: 50,
+  DANGER_DETECTION_RADIUS: 100,  // Bots avoid other snakes within this radius
+  SAFE_DISTANCE: 50,  // Minimum safe distance from other snakes
   SNAKE_COLORS: [
     '#00d9ff', // Cyan
     '#ff00aa', // Magenta
@@ -107,8 +109,9 @@ export class GameEngine {
       'WarpWorm', 'XenonX', 'ZephyrZen', 'ApexAdder'
     ];
 
-    // Add 24-28 bot players for much longer gameplay (3-5+ minute matches)
-    const botCount = 24 + Math.floor(Math.random() * 5);
+    // Add 30-35 bot players for much longer gameplay (5-8+ minute matches)
+    // More bots + smarter AI + slower speeds = longer, more strategic games
+    const botCount = 30 + Math.floor(Math.random() * 6);
     for (let i = 0; i < botCount; i++) {
       const botName = botNames[i % botNames.length];
       this.createPlayer(`bot-${i}`, `${botName}${i > botNames.length - 1 ? i : ''}`);
@@ -140,12 +143,38 @@ export class GameEngine {
       this.gameState.players.size % GAME_CONFIG.SNAKE_COLORS.length
     ];
 
-    const startX = Math.random() * (this.gameState.canvasWidth - 200) + 100;
-    const startY = Math.random() * (this.gameState.canvasHeight - 200) + 100;
+    // Enhanced spawn system: ensure players spawn far from each other
+    let startX: number;
+    let startY: number;
+    let attempts = 0;
+    const minSpawnDistance = 150; // Minimum distance from other players
+
+    do {
+      startX = Math.random() * (this.gameState.canvasWidth - 400) + 200;
+      startY = Math.random() * (this.gameState.canvasHeight - 400) + 200;
+      attempts++;
+
+      // Check if spawn position is far enough from existing players
+      let isSafeSpawn = true;
+      this.gameState.players.forEach(existingPlayer => {
+        const distance = Math.hypot(startX - existingPlayer.position.x, startY - existingPlayer.position.y);
+        if (distance < minSpawnDistance) {
+          isSafeSpawn = false;
+        }
+      });
+
+      if (isSafeSpawn || attempts > 50) {
+        break; // Found safe spawn or give up after 50 attempts
+      }
+    } while (true);
 
     const segments: Position[] = [];
+    const randomStartAngle = Math.random() * Math.PI * 2; // Random initial direction
     for (let i = 0; i < GAME_CONFIG.INITIAL_LENGTH; i++) {
-      segments.push({ x: startX - i * GAME_CONFIG.SEGMENT_DISTANCE, y: startY });
+      segments.push({
+        x: startX - i * GAME_CONFIG.SEGMENT_DISTANCE * Math.cos(randomStartAngle),
+        y: startY - i * GAME_CONFIG.SEGMENT_DISTANCE * Math.sin(randomStartAngle)
+      });
     }
 
     const player: Player = {
@@ -158,7 +187,7 @@ export class GameEngine {
       score: 0,
       eliminationCount: 0,
       speed: GAME_CONFIG.BASE_SPEED,
-      angle: 0,
+      angle: randomStartAngle,
       isAlive: true,
     };
 
@@ -366,43 +395,102 @@ export class GameEngine {
   }
 
   private updateBotBehavior(bot: Player) {
-    // Simple AI: find nearest food and move towards it
-    let nearestFood: FoodPellet | null = null;
-    let nearestDistance = Infinity;
+    // Enhanced AI: Detect nearby danger and avoid it, then find safe food
+
+    // Step 1: Detect nearby snakes (danger detection)
+    let nearestDanger: { player: Player; distance: number } | null = null;
+    let minDangerDistance = Infinity;
+
+    this.gameState.players.forEach(otherPlayer => {
+      if (otherPlayer.id === bot.id || !otherPlayer.isAlive) return;
+
+      // Check distance to other player's head and segments
+      otherPlayer.segments.forEach((segment, index) => {
+        const distance = Math.hypot(
+          bot.position.x - segment.x,
+          bot.position.y - segment.y
+        );
+
+        if (distance < GAME_CONFIG.DANGER_DETECTION_RADIUS && distance < minDangerDistance) {
+          minDangerDistance = distance;
+          nearestDanger = { player: otherPlayer, distance };
+        }
+      });
+    });
+
+    // Step 2: If danger is too close, prioritize evasion
+    if (nearestDanger && nearestDanger.distance < GAME_CONFIG.SAFE_DISTANCE) {
+      // Calculate escape angle (away from danger)
+      const dangerHead = nearestDanger.player.position;
+      const awayAngle = Math.atan2(
+        bot.position.y - dangerHead.y,
+        bot.position.x - dangerHead.x
+      );
+
+      // Add slight randomness to escape direction
+      const randomness = (Math.random() - 0.5) * 0.4;
+      bot.angle = awayAngle + randomness;
+
+      // Slow down during evasion for better control
+      bot.speed = GAME_CONFIG.BASE_SPEED * 0.85;
+      return; // Skip food seeking when evading
+    }
+
+    // Step 3: Find nearest safe food (food that's not near other snakes)
+    let nearestSafeFood: FoodPellet | null = null;
+    let nearestFoodDistance = Infinity;
 
     this.gameState.food.forEach(food => {
-      const distance = Math.hypot(
+      const distanceToFood = Math.hypot(
         bot.position.x - food.position.x,
         bot.position.y - food.position.y
       );
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestFood = food;
+
+      // Check if food is in a dangerous area (near other snakes)
+      let isFoodSafe = true;
+      this.gameState.players.forEach(otherPlayer => {
+        if (otherPlayer.id === bot.id || !otherPlayer.isAlive) return;
+
+        const distanceToOtherSnake = Math.hypot(
+          food.position.x - otherPlayer.position.x,
+          food.position.y - otherPlayer.position.y
+        );
+
+        if (distanceToOtherSnake < GAME_CONFIG.SAFE_DISTANCE) {
+          isFoodSafe = false;
+        }
+      });
+
+      if (isFoodSafe && distanceToFood < nearestFoodDistance) {
+        nearestFoodDistance = distanceToFood;
+        nearestSafeFood = food;
       }
     });
 
-    if (nearestFood) {
-      // Move towards nearest food with some randomness
+    // Step 4: Move towards safe food or wander cautiously
+    if (nearestSafeFood) {
+      // Move towards nearest safe food with some randomness
       const targetAngle = Math.atan2(
-        nearestFood.position.y - bot.position.y,
-        nearestFood.position.x - bot.position.x
+        nearestSafeFood.position.y - bot.position.y,
+        nearestSafeFood.position.x - bot.position.x
       );
 
-      // Add some randomness to make movement less robotic
-      const randomness = (Math.random() - 0.5) * 0.3;
+      // Add randomness to make movement less robotic
+      const randomness = (Math.random() - 0.5) * 0.2;
       bot.angle = targetAngle + randomness;
     } else {
-      // Random wandering if no food nearby
-      if (Math.random() < 0.02) {
-        bot.angle += (Math.random() - 0.5) * 0.5;
+      // Cautious wandering if no safe food nearby
+      if (Math.random() < 0.03) {
+        bot.angle += (Math.random() - 0.5) * 0.4;
       }
     }
 
-    // Very rarely boost (reduced to 0.1%) and return to normal more often
-    // This makes bots much more cautious and reduces collision deaths dramatically
-    if (Math.random() < 0.001) {
+    // Step 5: Almost never boost (0.05% chance) to minimize risky collisions
+    // Bots are extremely cautious and prefer survival over speed
+    if (Math.random() < 0.0005) {
       bot.speed = GAME_CONFIG.BOOST_SPEED;
-    } else if (Math.random() < 0.02) {
+    } else {
+      // Stay at safe base speed
       bot.speed = GAME_CONFIG.BASE_SPEED;
     }
   }
