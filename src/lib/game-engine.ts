@@ -52,13 +52,13 @@ export interface GameState {
 }
 
 export const GAME_CONFIG = {
-  BASE_SPEED: 0.7,  // Reduced from 0.9 to 0.7 for much slower, safer gameplay
-  BOOST_SPEED: 1.4,  // Reduced from 1.8 to 1.4 for safer boost speed
+  BASE_SPEED: 1.4,  // Increased from 0.7 to 1.4 for faster, more exciting gameplay
+  BOOST_SPEED: 2.4,  // Increased from 1.4 to 2.4 for high-speed boost
   SEGMENT_DISTANCE: 8,
   INITIAL_LENGTH: 10,
-  FOOD_COUNT: 150,  // Reduced from 600 to 150 - fewer stars to make games last longer
+  FOOD_COUNT: 80,  // Reduced from 150 to 80 - significantly fewer stars for easier navigation
   SPECIAL_FOOD_INTERVAL: 30000, // 30 seconds
-  COLLISION_DISTANCE: 6,  // Reduced from 8 to 6 for even more forgiving collisions
+  COLLISION_DISTANCE: 6,  // Kept at 6 for forgiving collisions
   GROWTH_PER_FOOD: 1,
   CANVAS_PADDING: 50,
   DANGER_DETECTION_RADIUS: 100,  // Bots avoid other snakes within this radius
