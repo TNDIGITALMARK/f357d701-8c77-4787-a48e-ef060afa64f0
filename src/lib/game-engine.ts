@@ -52,14 +52,14 @@ export interface GameState {
 }
 
 export const GAME_CONFIG = {
-  BASE_SPEED: 3,
-  BOOST_SPEED: 6,
+  BASE_SPEED: 1.2,  // Reduced from 3 to 1.2 for much slower gameplay
+  BOOST_SPEED: 2.4,  // Reduced from 6 to 2.4 for controlled boost speed
   SEGMENT_DISTANCE: 8,
   INITIAL_LENGTH: 10,
-  FOOD_COUNT: 250,
+  FOOD_COUNT: 400,  // Increased from 250 to 400 to support more players
   SPECIAL_FOOD_INTERVAL: 30000, // 30 seconds
   COLLISION_DISTANCE: 10,
-  GROWTH_PER_FOOD: 2,
+  GROWTH_PER_FOOD: 1,  // Reduced from 2 to 1 for slower growth
   CANVAS_PADDING: 50,
   SNAKE_COLORS: [
     '#00d9ff', // Cyan
@@ -95,14 +95,17 @@ export class GameEngine {
       'NeonViper', 'PixelPython', 'CosmicCrusher', 'ElectricEel',
       'GalacticGlider', 'TurboSerpent', 'OrbitMaster', 'StarStrike',
       'VoidReaper', 'NovaBlitz', 'QuantumSlither', 'EchoStorm',
-      'PhaseShifter', 'SolarFang', 'NightCrawler', 'VortexKing'
+      'PhaseShifter', 'SolarFang', 'NightCrawler', 'VortexKing',
+      'AstralRider', 'CyberSerpent', 'NebulaNinja', 'PhotonPhantom',
+      'PlasmaKnight', 'StellarSlayer', 'TitanTail', 'UltraVenom',
+      'WarpWorm', 'XenonX', 'ZephyrZen', 'ApexAdder'
     ];
 
-    // Add 12-15 bot players for longer gameplay
-    const botCount = 12 + Math.floor(Math.random() * 4);
+    // Add 24-28 bot players for much longer gameplay (3-5+ minute matches)
+    const botCount = 24 + Math.floor(Math.random() * 5);
     for (let i = 0; i < botCount; i++) {
       const botName = botNames[i % botNames.length];
-      this.createPlayer(`bot-${i}`, botName);
+      this.createPlayer(`bot-${i}`, `${botName}${i > botNames.length - 1 ? i : ''}`);
     }
   }
 
@@ -389,10 +392,11 @@ export class GameEngine {
       }
     }
 
-    // Occasionally boost
-    if (Math.random() < 0.01) {
+    // Rarely boost (reduced from 1% to 0.3%) and return to normal more often
+    // This makes bots more cautious and reduces collision deaths
+    if (Math.random() < 0.003) {
       bot.speed = GAME_CONFIG.BOOST_SPEED;
-    } else if (Math.random() < 0.02) {
+    } else if (Math.random() < 0.01) {
       bot.speed = GAME_CONFIG.BASE_SPEED;
     }
   }
