@@ -41,36 +41,59 @@ function GameContent() {
 
   if (gameOver) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-6">
-        <div className="max-w-md w-full">
-          <div className="bg-gradient-to-br from-card to-background border-2 border-primary rounded-2xl p-8 text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-6 relative overflow-hidden">
+        {/* Animated background effect */}
+        {victory && (
+          <>
+            <div className="absolute inset-0 bg-gradient-radial from-accent/10 via-transparent to-transparent animate-pulse-glow" />
+            <div className="absolute inset-0">
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 rounded-full"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: '-10px',
+                    backgroundColor: ['#00d9ff', '#ff00aa', '#d4ff00', '#00ff88'][i % 4],
+                    animation: `confetti-fall ${3 + Math.random() * 2}s linear ${Math.random() * 2}s infinite`,
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="max-w-md w-full relative z-10">
+          <div className="bg-gradient-to-br from-card to-background border-2 border-primary rounded-2xl p-8 text-center shadow-2xl animate-bounce-in">
             {victory ? (
               <>
                 <div className="mb-4">
-                  <div className="text-7xl mb-2 animate-float">👑</div>
-                  <h1 className="text-5xl font-black text-accent mb-2 neon-text uppercase">
+                  <div className="text-8xl mb-4 animate-float">👑</div>
+                  <h1 className="text-6xl font-black text-accent mb-3 animate-victory-pulse uppercase">
                     VICTORY!
                   </h1>
-                  <p className="text-xl text-foreground font-bold mb-2">
-                    Last Snake Standing
+                  <p className="text-2xl text-foreground font-bold mb-2 uppercase tracking-wider">
+                    🏆 Last Snake Standing 🏆
                   </p>
-                  <p className="text-muted-foreground mb-6">
-                    <span className="text-primary font-bold text-2xl">{winnerName}</span> wins!
+                  <p className="text-muted-foreground mb-6 text-lg">
+                    <span className="text-primary font-bold text-3xl neon-text">{winnerName}</span>
+                    <br />
+                    <span className="text-xl">has conquered the arena!</span>
                   </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3 mb-8">
-                  <div className="bg-background/50 rounded-xl p-4 border border-border">
-                    <div className="text-xs text-muted-foreground mb-1">Score</div>
-                    <div className="text-2xl font-bold text-primary">{finalScore}</div>
+                  <div className="bg-background/50 rounded-xl p-4 border-2 border-primary hover:border-accent transition-colors">
+                    <div className="text-xs text-muted-foreground mb-1 uppercase font-semibold">Score</div>
+                    <div className="text-3xl font-black text-primary neon-text">{finalScore}</div>
                   </div>
-                  <div className="bg-background/50 rounded-xl p-4 border border-border">
-                    <div className="text-xs text-muted-foreground mb-1">Length</div>
-                    <div className="text-2xl font-bold text-secondary">{finalLength}</div>
+                  <div className="bg-background/50 rounded-xl p-4 border-2 border-secondary hover:border-accent transition-colors">
+                    <div className="text-xs text-muted-foreground mb-1 uppercase font-semibold">Length</div>
+                    <div className="text-3xl font-black text-secondary neon-text">{finalLength}</div>
                   </div>
-                  <div className="bg-background/50 rounded-xl p-4 border border-border">
-                    <div className="text-xs text-muted-foreground mb-1">Kills</div>
-                    <div className="text-2xl font-bold text-accent">{eliminations}</div>
+                  <div className="bg-background/50 rounded-xl p-4 border-2 border-accent hover:border-primary transition-colors">
+                    <div className="text-xs text-muted-foreground mb-1 uppercase font-semibold">Kills</div>
+                    <div className="text-3xl font-black text-accent neon-text">{eliminations}</div>
                   </div>
                 </div>
               </>

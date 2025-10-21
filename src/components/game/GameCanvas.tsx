@@ -18,6 +18,7 @@ export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCa
   const animationFrameRef = useRef<number | null>(null);
   const [score, setScore] = useState(0);
   const [length, setLength] = useState(10);
+  const [survivorCount, setSurvivorCount] = useState(0);
   const [leaderboard, setLeaderboard] = useState<Array<{ name: string; score: number; length: number }>>([]);
 
   useEffect(() => {
@@ -124,6 +125,10 @@ export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCa
           return;
         }
       }
+
+      // Update survivor count
+      const aliveCount = Array.from(gameState.players.values()).filter(p => p.isAlive).length;
+      setSurvivorCount(aliveCount);
 
       // Update leaderboard every second
       if (now % 1000 < 16) {
@@ -254,6 +259,12 @@ export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCa
         <div className="text-3xl font-bold text-primary neon-text">{score}</div>
         <div className="text-sm text-muted-foreground mt-2">Length</div>
         <div className="text-xl font-semibold text-foreground">{length}</div>
+        <div className="mt-3 pt-3 border-t border-border">
+          <div className="text-xs text-muted-foreground mb-1">Survivors</div>
+          <div className={`text-2xl font-bold ${survivorCount <= 3 ? 'text-accent animate-pulse-glow' : 'text-secondary'}`}>
+            {survivorCount}
+          </div>
+        </div>
       </div>
 
       {/* Leaderboard */}
