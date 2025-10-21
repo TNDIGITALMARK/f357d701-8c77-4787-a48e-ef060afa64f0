@@ -5,14 +5,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Zap, Crown, Gamepad2 } from 'lucide-react';
 
+const PLAYER_COLORS = [
+  { name: 'Cyan', value: '#00d9ff' },
+  { name: 'Magenta', value: '#ff00aa' },
+  { name: 'Yellow', value: '#d4ff00' },
+  { name: 'Green', value: '#00ff88' },
+  { name: 'Orange', value: '#ff6b00' },
+  { name: 'Purple', value: '#8b5cf6' },
+  { name: 'Hot Pink', value: '#ff0066' },
+  { name: 'Aqua', value: '#00ffff' },
+  { name: 'Amber', value: '#ff9900' },
+  { name: 'Lime', value: '#66ff00' },
+  { name: 'Violet', value: '#9933ff' },
+  { name: 'Rose', value: '#ff3366' },
+];
+
 export default function HomePage() {
   const [playerName, setPlayerName] = useState('');
+  const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0].value);
   const [isStarting, setIsStarting] = useState(false);
 
   const handleStartGame = () => {
     if (playerName.trim()) {
       setIsStarting(true);
-      window.location.href = `/game?name=${encodeURIComponent(playerName.trim())}`;
+      window.location.href = `/game?name=${encodeURIComponent(playerName.trim())}&color=${encodeURIComponent(selectedColor)}`;
     }
   };
 
@@ -238,25 +254,66 @@ export default function HomePage() {
 
       {/* Play Section */}
       <section id="play-section" className="py-20 px-6">
-        <div className="container mx-auto max-w-md">
-          <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl border-2 border-primary p-8 text-center">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
+        <div className="container mx-auto max-w-xl">
+          <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl border-2 border-primary p-8">
+            <h2 className="text-3xl font-bold text-foreground mb-4 text-center">
               JOIN THE ARENA – PLAY FREE!
             </h2>
-            <p className="text-muted-foreground mb-6">
-              Enter your name and start dominating the cosmic battlefield
+            <p className="text-muted-foreground mb-6 text-center">
+              Choose your snake name and color to dominate the cosmic battlefield
             </p>
 
-            <div className="space-y-4">
-              <Input
-                type="text"
-                placeholder="Enter your snake name..."
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleStartGame()}
-                className="text-center text-lg h-12 bg-background border-2 border-border focus:border-primary"
-                maxLength={20}
-              />
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-2">
+                  SNAKE NAME
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter your snake name..."
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleStartGame()}
+                  className="text-center text-lg h-12 bg-background border-2 border-border focus:border-primary"
+                  maxLength={20}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-3">
+                  SNAKE COLOR
+                </label>
+                <div className="grid grid-cols-6 gap-3">
+                  {PLAYER_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setSelectedColor(color.value)}
+                      className={`relative aspect-square rounded-lg transition-all duration-200 ${
+                        selectedColor === color.value
+                          ? 'ring-4 ring-foreground scale-110 shadow-lg'
+                          : 'ring-2 ring-border hover:ring-foreground/50 hover:scale-105'
+                      }`}
+                      style={{
+                        backgroundColor: color.value,
+                        boxShadow: selectedColor === color.value ? `0 0 20px ${color.value}80` : 'none',
+                      }}
+                      title={color.name}
+                      aria-label={`Select ${color.name} color`}
+                    >
+                      {selectedColor === color.value && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-3 h-3 bg-white rounded-full" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Selected: <span className="font-semibold" style={{ color: selectedColor }}>
+                    {PLAYER_COLORS.find(c => c.value === selectedColor)?.name}
+                  </span>
+                </p>
+              </div>
 
               <Button
                 size="lg"

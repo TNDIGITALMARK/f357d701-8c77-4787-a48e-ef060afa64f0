@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 function GameContent() {
   const searchParams = useSearchParams();
   const playerName = searchParams.get('name') || 'Anonymous';
+  const playerColor = searchParams.get('color') || '#00d9ff';
   const [gameOver, setGameOver] = useState(false);
   const [victory, setVictory] = useState(false);
   const [winnerName, setWinnerName] = useState('');
@@ -150,7 +151,7 @@ function GameContent() {
     );
   }
 
-  return <GameCanvas playerName={playerName} onGameOver={handleGameOver} onVictory={handleVictory} />;
+  return <GameCanvas playerName={playerName} playerColor={playerColor} onGameOver={handleGameOver} onVictory={handleVictory} />;
 }
 
 export default function GamePage() {

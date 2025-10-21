@@ -5,11 +5,12 @@ import { GameEngine, Player, GameState } from '@/lib/game-engine';
 
 interface GameCanvasProps {
   playerName: string;
+  playerColor: string;
   onGameOver: (score: number, length: number) => void;
   onVictory: (winnerName: string, score: number, length: number, eliminations: number) => void;
 }
 
-export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCanvasProps) {
+export default function GameCanvas({ playerName, playerColor, onGameOver, onVictory }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const playerIdRef = useRef<string>(`player-${Date.now()}`);
@@ -36,8 +37,8 @@ export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCa
     const gameEngine = new GameEngine(canvas.width, canvas.height);
     gameEngineRef.current = gameEngine;
 
-    // Create player
-    const player = gameEngine.createPlayer(playerIdRef.current, playerName);
+    // Create player with custom color
+    const player = gameEngine.createPlayer(playerIdRef.current, playerName, playerColor);
 
     // Mouse move handler
     const handleMouseMove = (e: MouseEvent) => {
@@ -154,7 +155,7 @@ export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCa
       }
       gameEngine.cleanup();
     };
-  }, [playerName, onGameOver]);
+  }, [playerName, playerColor, onGameOver, onVictory]);
 
   const render = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, gameState: GameState) => {
     // Clear canvas
@@ -255,6 +256,18 @@ export default function GameCanvas({ playerName, onGameOver, onVictory }: GameCa
 
       {/* Game UI Overlay */}
       <div className="absolute top-6 left-6 bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
+        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border">
+          <div
+            className="w-6 h-6 rounded-full border-2 border-foreground"
+            style={{
+              backgroundColor: playerColor,
+              boxShadow: `0 0 10px ${playerColor}80`
+            }}
+          />
+          <div className="text-sm font-semibold text-foreground truncate max-w-[120px]">
+            {playerName}
+          </div>
+        </div>
         <div className="text-sm text-muted-foreground mb-1">Score</div>
         <div className="text-3xl font-bold text-primary neon-text">{score}</div>
         <div className="text-sm text-muted-foreground mt-2">Length</div>

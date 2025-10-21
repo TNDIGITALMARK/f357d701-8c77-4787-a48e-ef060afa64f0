@@ -52,14 +52,14 @@ export interface GameState {
 }
 
 export const GAME_CONFIG = {
-  BASE_SPEED: 1.2,  // Reduced from 3 to 1.2 for much slower gameplay
-  BOOST_SPEED: 2.4,  // Reduced from 6 to 2.4 for controlled boost speed
+  BASE_SPEED: 0.9,  // Further reduced from 1.2 to 0.9 for slower, more strategic gameplay
+  BOOST_SPEED: 1.8,  // Reduced from 2.4 to 1.8 for safer boost speed
   SEGMENT_DISTANCE: 8,
   INITIAL_LENGTH: 10,
-  FOOD_COUNT: 400,  // Increased from 250 to 400 to support more players
+  FOOD_COUNT: 500,  // Increased from 400 to 500 for more food availability
   SPECIAL_FOOD_INTERVAL: 30000, // 30 seconds
-  COLLISION_DISTANCE: 10,
-  GROWTH_PER_FOOD: 1,  // Reduced from 2 to 1 for slower growth
+  COLLISION_DISTANCE: 8,  // Reduced from 10 to 8 for more forgiving collisions
+  GROWTH_PER_FOOD: 1,
   CANVAS_PADDING: 50,
   SNAKE_COLORS: [
     '#00d9ff', // Cyan
@@ -68,6 +68,12 @@ export const GAME_CONFIG = {
     '#00ff88', // Green
     '#ff6b00', // Orange
     '#8b5cf6', // Purple
+    '#ff0066', // Hot Pink
+    '#00ffff', // Aqua
+    '#ff9900', // Amber
+    '#66ff00', // Lime
+    '#9933ff', // Violet
+    '#ff3366', // Rose
   ],
 };
 
@@ -129,8 +135,8 @@ export class GameEngine {
     };
   }
 
-  createPlayer(id: string, name: string): Player {
-    const color = GAME_CONFIG.SNAKE_COLORS[
+  createPlayer(id: string, name: string, customColor?: string): Player {
+    const color = customColor || GAME_CONFIG.SNAKE_COLORS[
       this.gameState.players.size % GAME_CONFIG.SNAKE_COLORS.length
     ];
 
@@ -392,11 +398,11 @@ export class GameEngine {
       }
     }
 
-    // Rarely boost (reduced from 1% to 0.3%) and return to normal more often
-    // This makes bots more cautious and reduces collision deaths
-    if (Math.random() < 0.003) {
+    // Very rarely boost (reduced to 0.1%) and return to normal more often
+    // This makes bots much more cautious and reduces collision deaths dramatically
+    if (Math.random() < 0.001) {
       bot.speed = GAME_CONFIG.BOOST_SPEED;
-    } else if (Math.random() < 0.01) {
+    } else if (Math.random() < 0.02) {
       bot.speed = GAME_CONFIG.BASE_SPEED;
     }
   }
