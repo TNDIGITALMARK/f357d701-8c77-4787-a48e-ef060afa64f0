@@ -56,7 +56,7 @@ export const GAME_CONFIG = {
   BOOST_SPEED: 2.4,  // Increased from 1.4 to 2.4 for high-speed boost
   SEGMENT_DISTANCE: 8,
   INITIAL_LENGTH: 10,
-  FOOD_COUNT: 80,  // Reduced from 150 to 80 - significantly fewer stars for easier navigation
+  FOOD_COUNT: 35,  // Drastically reduced from 80 to 35 - fewer stars means longer games
   SPECIAL_FOOD_INTERVAL: 30000, // 30 seconds
   COLLISION_DISTANCE: 6,  // Kept at 6 for forgiving collisions
   GROWTH_PER_FOOD: 1,
